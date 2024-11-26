@@ -1,7 +1,8 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import axios from "axios";
+import CreatableSelect from "react-select/creatable";
+import { useForm } from "react-hook-form";
 import { BaseUrl } from "@/service/api";
 import { useMutation } from "react-query";
 import {
@@ -15,10 +16,18 @@ import {
   GridItem,
   Stack,
 } from "@chakra-ui/react";
-import { SelectContent, SelectItem, SelectRoot, SelectTrigger, SelectValueText } from "./ui/select";
+import {
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "./ui/select";
 import { enqSource, grade, relation, statesIndia } from "@/service/collection";
 import { Checkbox } from "./ui/checkbox";
 import { Toaster, toaster } from "./ui/toaster";
+import { useState } from "react";
+import { schoolL, schoolList } from "@/service/schoolList";
 
 type EnquiryFormData = {
   studentName: string;
@@ -26,7 +35,7 @@ type EnquiryFormData = {
   relation: string;
   dateOfBirth: string;
   grade: string;
-  currentSchool: string;
+  currentSchool: any;
   contactDetails: {
     contactMain: string;
     contactOpt: string;
@@ -52,7 +61,11 @@ export default function EnquiryForm() {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    getValues,
   } = useForm<EnquiryFormData>();
+
+  const schoolName = getValues("currentSchool");
 
   const mutation = useMutation(
     (data: EnquiryFormData) => axios.post(`${BaseUrl}/enquiries`, data),
@@ -90,6 +103,8 @@ export default function EnquiryForm() {
   const onSubmit = (data: EnquiryFormData) => {
     mutation.mutate(data);
   };
+
+  console.log(schoolName);
 
   return (
     <Box
@@ -145,12 +160,12 @@ export default function EnquiryForm() {
             </GridItem>
 
             <GridItem>
-            <SelectRoot
+              <SelectRoot
                 collection={relation}
                 size="md"
                 {...register("relation", { required: "Relation is required" })}
               >
-            <SelectTrigger>
+                <SelectTrigger>
                   <SelectValueText placeholder="Select Relation *" />
                 </SelectTrigger>
                 <SelectContent>
@@ -164,14 +179,10 @@ export default function EnquiryForm() {
               {errors.relation && (
                 <Text color="red.500">{errors.relation.message}</Text>
               )}
-
-              {errors.relation && (
-                <Text color="red.500">{errors.relation.message}</Text>
-              )}
             </GridItem>
 
             <GridItem>
-            <SelectRoot
+              <SelectRoot
                 collection={grade}
                 size="md"
                 {...register("grade", { required: "Grade is required" })}
@@ -205,14 +216,25 @@ export default function EnquiryForm() {
               )}
             </GridItem>
             <GridItem>
-              <Input
+              {/* <Input
                 type="text"
                 placeholder="Current School"
+                defaultValue={schoolName}
+                
                 {...register("currentSchool")}
+              /> */}
+              <CreatableSelect
+                isClearable
+                options={schoolL}
+                // value={getValues("currentSchool")||null} 
+                placeholder="Hello world"
+                onChange={(selectedOption) => {
+                  setValue(
+                    "currentSchool",
+                    selectedOption ? selectedOption.value : null
+                  );
+                }}
               />
-              {errors.dateOfBirth && (
-                <Text color="red.500">{errors.dateOfBirth.message}</Text>
-              )}
             </GridItem>
           </Grid>
 
@@ -278,7 +300,7 @@ export default function EnquiryForm() {
               <Input placeholder="City" {...register("address.city")} />
             </GridItem>
             <GridItem>
-            <SelectRoot
+              <SelectRoot
                 collection={statesIndia}
                 size="md"
                 {...register("address.state")}
@@ -310,7 +332,7 @@ export default function EnquiryForm() {
           </Heading>
           <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
             <GridItem>
-            <SelectRoot
+              <SelectRoot
                 collection={enqSource}
                 size="md"
                 {...register("enquirySource")}
@@ -337,7 +359,7 @@ export default function EnquiryForm() {
             </GridItem>
 
             <GridItem>
-            <Stack align="flex-start">
+              <Stack align="flex-start">
                 <Checkbox
                   variant={"outline"}
                   {...register("wantHostelInfo")}
